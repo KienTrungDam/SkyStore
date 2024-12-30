@@ -1,0 +1,6 @@
+@SkyStoreAPI_HostAddress = http://localhost:5081
+
+GET {{SkyStoreAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
