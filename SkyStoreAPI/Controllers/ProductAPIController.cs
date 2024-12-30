@@ -9,7 +9,7 @@ namespace SkyStoreAPI.Controllers
 {
     [Route("api/ProductAPI")]
     [ApiController]
-    public class ProductAPIController : Controller
+    public class ProductAPIController : ControllerBase
     {
         protected APIResponse _response;
         private readonly IMapper _mapper;

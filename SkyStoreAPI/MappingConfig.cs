@@ -11,7 +11,7 @@ namespace SkyStoreAPI
             CreateMap<Category, CategoryDTO>().ReverseMap();
             CreateMap<Category, CategoryCreateDTO>().ReverseMap();
             CreateMap<Category, CategoryUpdateDTO>().ReverseMap();
-
+            CreateMap<ApplicationUser, UserDTO>().ReverseMap();
             CreateMap<Product, ProductDTO>().ReverseMap();
             CreateMap<Product, ProductCreateDTO>().ReverseMap();
             CreateMap<Product, ProductUpdateDTO>().ReverseMap();

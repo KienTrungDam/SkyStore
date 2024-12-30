@@ -8,9 +8,9 @@ namespace SkyStoreAPI.Models
     {
         [Required]
         public string Name { get; set; }
-        public string StreetAddress { get; set; }
-        public string City { get; set; }
-        public string Stata { get; set; }
+        public string? StreetAddress { get; set; }
+        public string? City { get; set; }
+        public string? State { get; set; }
         [NotMapped]   
         public string Role { get; set; }
     }
