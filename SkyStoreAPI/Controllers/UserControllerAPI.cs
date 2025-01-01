@@ -1,11 +1,12 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SkyStoreAPI.Models.DTO;
 using SkyStoreAPI.Models;
 using System.Net;
 using AutoMapper;
 using SkyStoreAPI.Repository.IRepository;
 using Microsoft.AspNetCore.Identity;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace SkyStoreAPI.Controllers
 {
@@ -17,13 +18,15 @@ namespace SkyStoreAPI.Controllers
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UserControllerAPI(IMapper mapper, IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public UserControllerAPI(IMapper mapper, IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _response = new ();
             _userManager = userManager;
+            _roleManager = roleManager;
         }
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -31,6 +34,10 @@ namespace SkyStoreAPI.Controllers
         public async Task<ActionResult> Login([FromBody]LoginRequestDTO loginRequestDTO)
         {
             LoginResponseDTO loginResponseDTO = await _unitOfWork.User.LoginAsync(loginRequestDTO);
+            var user = _mapper.Map<ApplicationUser>(loginResponseDTO.user);
+            var role = await _userManager.GetRolesAsync(user);
+
+            loginResponseDTO.user.Role = role.FirstOrDefault();
             try
             {
                 if(loginResponseDTO == null)

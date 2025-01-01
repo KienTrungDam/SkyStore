@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkyStoreAPI.Models;
 using SkyStoreAPI.Models.DTO;
 using SkyStoreAPI.Repository.IRepository;
+using SkyStoreAPI.Untility;
 using System.Net;
 
 namespace SkyStoreAPI.Controllers
@@ -22,7 +24,8 @@ namespace SkyStoreAPI.Controllers
             _response = new APIResponse();
         }
         [HttpGet]
-        public async Task<ActionResult> GetCategories()
+        [Authorize]
+        public async Task<ActionResult<APIResponse>> GetCategories()
         {
             IEnumerable<Category> categories = await _unitOfWork.Category.GetAllAsync();
             _response.StatusCode =  HttpStatusCode.OK;
@@ -30,7 +33,8 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);  
         }
         [HttpGet("{id:int}", Name = "GetCategory")]
-        public async Task<ActionResult> GetCategory(int id)
+        [Authorize(Roles = SD.Role_Customer)]
+        public async Task<ActionResult<APIResponse>> GetCategory(int id)
         {
             if(id == 0)
             {
@@ -52,7 +56,8 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);
         }
         [HttpPost]
-        public async Task<ActionResult> CreateCategory([FromForm] CategoryCreateDTO categoryCreateDTO)
+        [Authorize(Roles = SD.Role_Admin)]
+        public async Task<ActionResult<APIResponse>> CreateCategory([FromForm] CategoryCreateDTO categoryCreateDTO)
         {
             var temp = await _unitOfWork.Category.GetAsync(u => u.Name == categoryCreateDTO.Name);
             if(temp != null)
@@ -77,7 +82,8 @@ namespace SkyStoreAPI.Controllers
             return CreatedAtRoute("GetCategory", new { id = category.Id }, _response);
         }
         [HttpPut("{id:int}", Name = "UpdateCategory")]
-        public async Task<ActionResult> UpdateCategory(int id, [FromForm] CategoryUpdateDTO categoryUpdateDTO)
+        [Authorize(Roles = SD.Role_Admin)]
+        public async Task<ActionResult<APIResponse>> UpdateCategory(int id, [FromForm] CategoryUpdateDTO categoryUpdateDTO)
         {
             if(id == 0 || categoryUpdateDTO == null)
             {
@@ -92,7 +98,8 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);
         }
         [HttpDelete("{id:int}", Name = "DeleteCategory")]
-        public async Task<ActionResult> DeleteCategory(int id)
+        [Authorize(Roles = SD.Role_Admin)]
+        public async Task<ActionResult<APIResponse>> DeleteCategory(int id)
         {
             if (id == 0)
             {

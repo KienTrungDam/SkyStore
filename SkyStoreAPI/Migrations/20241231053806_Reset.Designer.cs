@@ -12,7 +12,7 @@ using SkyStoreAPI.Data;
 namespace SkyStoreAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241230162211_Reset")]
+    [Migration("20241231053806_Reset")]
     partial class Reset
     {
         /// <inheritdoc />

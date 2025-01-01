@@ -73,16 +73,19 @@ namespace SkyStoreAPI.Repository
                         await _roleManager.CreateAsync(new IdentityRole(SD.Role_Customer));
 
                     }*/
+                    var getuser = _db.ApplicationUsers.FirstOrDefault(u => u.UserName == registerRequestDTO.UserName);
+                    var userDTO = _mapper.Map<UserDTO>(getuser);
                     if (_roleManager.RoleExistsAsync(registerRequestDTO.Role).GetAwaiter().GetResult())
                     {
                         await _userManager.AddToRoleAsync(user, registerRequestDTO.Role);
+                        userDTO.Role = registerRequestDTO.Role;
                     }
                     else
                     {
                         await _userManager.AddToRoleAsync(user, SD.Role_Customer);
+                        userDTO.Role = SD.Role_Customer;
                     }
-                    var getuser = _db.ApplicationUsers.FirstOrDefault(u => u.UserName == registerRequestDTO.UserName);
-                    return _mapper.Map<UserDTO>(getuser);
+                    return userDTO;
                 }
                 else
                 {

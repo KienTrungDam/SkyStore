@@ -15,7 +15,8 @@ namespace SkyStoreAPI.Repository
         private readonly IConfiguration _configuration;
         public ICategoryRepository Category { get; }
         public IProductRepository Product { get; }
-        public IUserRepository User { get; }    
+        public IUserRepository User { get; }  
+        public IApplicationUserRepository ApplicationUser { get; }
         public UnitOfWork(ApplicationDbContext db, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, IConfiguration configuration, IMapper mapper)
         {
             _db = db;
@@ -27,6 +28,12 @@ namespace SkyStoreAPI.Repository
             Category = new CategoryRepository(_db);
             Product = new ProductRepository(_db);
             User = new UserRepository(_db, _userManager, _roleManager, _mapper, _configuration);
+            ApplicationUser = new ApplicationUserRepository(_db);   
+        }
+
+        public async Task SaveAsync()
+        {
+            await _db.SaveChangesAsync();
         }
     }
 }

@@ -4,6 +4,8 @@ using SkyStoreAPI.Models.DTO;
 using SkyStoreAPI.Models;
 using SkyStoreAPI.Repository.IRepository;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
+using SkyStoreAPI.Untility;
 
 namespace SkyStoreAPI.Controllers
 {
@@ -22,7 +24,8 @@ namespace SkyStoreAPI.Controllers
             _response = new APIResponse();
         }
         [HttpGet]
-        public async Task<ActionResult> GetProducts()
+        [Authorize]
+        public async Task<ActionResult<APIResponse>> GetProducts()
         {
             IEnumerable<Product> products = await _unitOfWork.Product.GetAllAsync(includeProperties: "Category");
             _response.StatusCode = HttpStatusCode.OK;
@@ -30,7 +33,8 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);
         }
         [HttpGet("{id:int}", Name = "GetProduct")]
-        public async Task<ActionResult> GetProduct(int id)
+        [Authorize(Roles = SD.Role_Customer)]
+        public async Task<ActionResult<APIResponse>> GetProduct(int id)
         {
             if (id == 0)
             {
@@ -52,7 +56,8 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);
         }
         [HttpPost]
-        public async Task<ActionResult> CreateProduct([FromForm] ProductCreateDTO productCreateDTO)
+        [Authorize(Roles = SD.Role_Admin)]
+        public async Task<ActionResult<APIResponse>> CreateProduct([FromForm] ProductCreateDTO productCreateDTO)
         {
             var temp = await _unitOfWork.Product.GetAsync(u => u.Name == productCreateDTO.Name);
             if (temp != null)
@@ -77,7 +82,8 @@ namespace SkyStoreAPI.Controllers
             return CreatedAtRoute("GetProduct", new { id = product.Id }, _response);
         }
         [HttpPut("{id:int}", Name = "UpdateProduct")]
-        public async Task<ActionResult> UpdateProduct(int id, [FromForm] ProductUpdateDTO productUpdateDTO)
+        [Authorize(Roles = SD.Role_Admin)]
+        public async Task<ActionResult<APIResponse>> UpdateProduct(int id, [FromForm] ProductUpdateDTO productUpdateDTO)
         {
             if (id == 0 || productUpdateDTO == null)
             {
@@ -92,7 +98,8 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);
         }
         [HttpDelete("{id:int}", Name = "DeleteProduct")]
-        public async Task<ActionResult> DeleteProduct(int id)
+        [Authorize(Roles = SD.Role_Admin)]
+        public async Task<ActionResult<APIResponse>> DeleteProduct(int id)
         {
             if (id == 0)
             {
