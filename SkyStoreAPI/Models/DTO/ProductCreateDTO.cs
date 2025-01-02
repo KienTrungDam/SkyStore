@@ -11,8 +11,8 @@ namespace SkyStoreAPI.Models.DTO
         public string Name { get; set; }
         [Required]
         public double Price { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
-        public string ImageUrl { get; set; }
+        public IFormFile ImageUrl { get; set; }
     }
 }

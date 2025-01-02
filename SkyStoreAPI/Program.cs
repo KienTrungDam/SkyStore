@@ -91,7 +91,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseStaticFiles(); // add wwwroot folder
 app.MapControllers();
 
 SeedDatabase();
