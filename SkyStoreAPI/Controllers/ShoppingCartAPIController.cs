@@ -241,5 +241,44 @@ namespace SkyStoreAPI.Controllers
                 }
             }
         }
+        [HttpDelete]
+        public async Task<ActionResult<APIResponse>> DeleteShoppingCartItem(string userId, int shoppingCartItemId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Invalid User ID");
+                return BadRequest(_response);
+            }
+            ShoppingCart shoppingCart = await _unitOfWork.ShoppingCart.GetAsync(u => u.UserId == userId);
+            if (shoppingCart == null)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("ShoppingCart does not exist");
+                return BadRequest(_response);
+            }
+            ShoppingCartItem item = await _unitOfWork.ShoppingCartItem.GetAsync(u => u.ShoppingCartId == shoppingCart.Id && u.Id == shoppingCartItemId);
+            if (item == null)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("item does not exist");
+                return BadRequest(_response);
+            }
+            else
+            {
+                await _unitOfWork.ShoppingCartItem.RemoveAsync(item);
+                //update lai ShoppingCart
+                shoppingCart.ShoppingCartItems = await _unitOfWork.ShoppingCartItem.GetAllAsync(u => u.ShoppingCartId == shoppingCart.Id, includeProperties: "Product");
+                await _unitOfWork.ShoppingCart.UpdateAsync(shoppingCart);
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.Result = _mapper.Map<ShoppingCartDTO>(shoppingCart);
+                return Ok(_response);
+            }
+        }
     }
 }
