@@ -13,7 +13,7 @@ namespace SkyStoreAPI.Repository
             _db = db;
         }
 
-        public bool IsValidStatus(string currentStatus, string newStatus)
+        public bool IsValidStatusTransition(string currentStatus, string newStatus)
         {
             switch (currentStatus)
             {
@@ -30,6 +30,15 @@ namespace SkyStoreAPI.Repository
                 default:
                     return false;
             }
+        }
+
+        public bool IsValidStatus(string status)
+        {
+            return status.Equals(SD.Order_Pending) ||
+                   status.Equals(SD.Order_Confirmed) ||
+                   status.Equals(SD.Order_Processing) ||
+                   status.Equals(SD.Order_Completed) ||
+                   status.Equals(SD.Order_Cancelled);
         }
 
         public async Task<OrderHeader> UpdateAsync(OrderHeader entity)

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SkyStoreAPI.Models;
@@ -12,6 +13,7 @@ namespace SkyStoreAPI.Controllers
 {
     [Route("api/ShoppingCart")]
     [ApiController]
+    [Authorize]
     public class ShoppingCartAPIController : ControllerBase
     {
         protected APIResponse _response;
@@ -80,9 +82,9 @@ namespace SkyStoreAPI.Controllers
         }
         [HttpPost]
         //[Authorize(Roles = SD.Role_Admin)]
-        public async Task<ActionResult<APIResponse>> CreateShoppingCart(string userId, int productId, int quantity)
+        public async Task<ActionResult<APIResponse>> CreateShoppingCart(int productId, int quantity)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
@@ -98,14 +100,14 @@ namespace SkyStoreAPI.Controllers
                 _response.ErrorMessages.Add("Product item is not valid");
                 return BadRequest(_response);
             }
-            ShoppingCart shoppingCart = await _unitOfWork.ShoppingCart.GetAsync(u => u.UserId == userId);
+            ShoppingCart shoppingCart = await _unitOfWork.ShoppingCart.GetAsync(u => u.UserId == user.Id);
             if (shoppingCart == null)
             {
                 //chua co ShoppingCart
                 //create ShoppingCart
                 ShoppingCart newShoppingCart = new ShoppingCart
                 {
-                    UserId = userId,
+                    UserId = user.Id,
                     CartTotal = 0,
                     ItemsTotal = 0,
                     ShoppingCartItems = new List<ShoppingCartItem>()

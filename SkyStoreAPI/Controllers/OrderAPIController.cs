@@ -81,7 +81,7 @@ namespace SkyStoreAPI.Controllers
             }
             try
             {
-                if (id == 0)
+                if (id <= 0)
                 {
                     _response.IsSuccess = false;
                     _response.ErrorMessages.Add("Id is not valid");
@@ -99,7 +99,7 @@ namespace SkyStoreAPI.Controllers
                     return NotFound(_response);
                 }
 
-                order.OrderDetail = await _unitOfWork.OrderDetail.GetAllAsync(u => u.OrderHeaderId == order.Id, includeProperties: "MenuItem");
+                order.OrderDetails = await _unitOfWork.OrderDetail.GetAllAsync(u => u.OrderHeaderId == order.Id, includeProperties: "Product");
                 _response.Result = _mapper.Map<OrderHeaderDTO>(order);
 
                 _response.StatusCode = HttpStatusCode.OK;
@@ -107,10 +107,155 @@ namespace SkyStoreAPI.Controllers
             }
             catch (Exception ex)
             {
+                _response.ErrorMessages.Add(ex.Message);
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.IsSuccess = false;
                 return _response;
             }
         }
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult<APIResponse>> CreateOrder()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("User is unauthorized");
+                    _response.StatusCode = HttpStatusCode.Unauthorized;
+                    return Unauthorized(_response);
+                }
+                ShoppingCart cart = await _unitOfWork.ShoppingCart.GetAsync(u => u.UserId == user.Id);
+                cart.ShoppingCartItems = await _unitOfWork.ShoppingCartItem.GetAllAsync(u => u.ShoppingCartId == cart.Id, includeProperties: "Product");
+                if (cart == null || cart.ShoppingCartItems.Count() == 0)
+                {
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("ShoppingCart is null");
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    return BadRequest(_response);
+                }
+                //create orderheader
+                OrderHeader orderHeader = new OrderHeader()
+                {
+                    ApplicationUserId = user.Id,
+                    OrderDate = DateTime.Now,
+                    OrderDetails = new List<OrderDetail>(),
+                    ItemsTotal = cart.ItemsTotal,
+                    OrderTotal = cart.CartTotal,
+                    OrderStatus = SD.Order_Pending
+                };
+                await _unitOfWork.OrderHeader.CreateAsync(orderHeader);
+                //create orderdetail
+                foreach (var shoppingCartItem in cart.ShoppingCartItems)
+                {
+                    var orderDetail = new OrderDetail()
+                    {
+                        OrderHeaderId = orderHeader.Id,
+                        ProductId = shoppingCartItem.Product.Id,
+                        Quantity = shoppingCartItem.Quantity,
+                        Price = shoppingCartItem.Product.Price,
+                        //  MenuItem = null
+                    };
+                    await _unitOfWork.OrderDetail.CreateAsync(orderDetail);
+                }
+                orderHeader.OrderDetails = await _unitOfWork.OrderDetail.GetAllAsync(u => u.OrderHeaderId == orderHeader.Id, includeProperties: "Product");
+                //delete ShoppingCart
+                await _unitOfWork.ShoppingCart.RemoveAsync(cart);
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeader);
+                return CreatedAtRoute("GetOrder", new { id = orderHeader.Id }, _response);
+            }
+            catch (Exception ex)
+            {
+                _response.ErrorMessages.Add(ex.Message);
+                _response.IsSuccess = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
+            }
+
+            
+
+        }
+        [HttpPut]
+        [Authorize]
+        public async Task<ActionResult<APIResponse>> UpdateStatusOrder(int id, string status)
+        {
+            OrderHeader orderHeader = await _unitOfWork.OrderHeader.GetAsync(u => u.Id == id);
+            if (orderHeader == null)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Id OrderHeader is not valid");
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return BadRequest(_response);
+            }
+            if(_unitOfWork.OrderHeader.IsValidStatus(status) == false)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Status for update is not valid");
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return BadRequest(_response);
+            }
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("User is unauthorized");
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return Unauthorized(_response);
+            }
+            var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
+            if(role == SD.Role_Employee || role == SD.Role_Admin)
+            {
+                if (_unitOfWork.OrderHeader.IsValidStatusTransition(orderHeader.OrderStatus, status))
+                {
+                    orderHeader.OrderStatus = status;
+                }
+                else
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages.Add("Some thing went wrong");
+                    return BadRequest(_response);
+                }
+            }
+            else
+            {
+                OrderHeader orderHeaderCustomer = await _unitOfWork.OrderHeader.GetAsync(u => u.ApplicationUserId == user.Id && u.Id == id);
+                if (orderHeaderCustomer.OrderStatus != SD.Order_Cancelled || orderHeaderCustomer.OrderStatus != SD.Order_Completed)
+                {
+                    if(status == SD.Order_Cancelled)
+                    {
+                        orderHeaderCustomer.OrderStatus = status;
+                        await _unitOfWork.OrderHeader.UpdateAsync(orderHeaderCustomer);
+                        _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeaderCustomer);
+                        _response.StatusCode = HttpStatusCode.NoContent;
+                        return Ok(_response);
+                    }
+                    else
+                    {
+                        _response.IsSuccess = false;
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.ErrorMessages.Add("You cannot update status");
+                        return BadRequest(_response);
+                    }
+                    
+                }
+                else if(orderHeaderCustomer.OrderStatus == SD.Order_Cancelled || orderHeaderCustomer.OrderStatus == SD.Order_Completed)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages.Add("You cannot update a completed or cancelled order.");
+                    return BadRequest(_response);
+                }
+            }
+            await _unitOfWork.OrderHeader.UpdateAsync(orderHeader);
+            _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeader);   
+            _response.StatusCode = HttpStatusCode.NoContent;
+            return Ok(_response);
+        }
+        
     }
 }
