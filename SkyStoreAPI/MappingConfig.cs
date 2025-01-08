@@ -18,6 +18,9 @@ namespace SkyStoreAPI
             CreateMap<Product, ProductUpdateDTO>().ReverseMap();
             CreateMap<ShoppingCart, ShoppingCartDTO>().ReverseMap();
             CreateMap<ShoppingCartItem, ShoppingCartItemDTO>().ReverseMap();
+
+            CreateMap<OrderDetail, OrderDetailDTO>().ReverseMap();
+            CreateMap<OrderHeader, OrderHeaderDTO>().ReverseMap();
         }
     }
 }

@@ -102,6 +102,7 @@ namespace SkyStoreAPI.Controllers
             if (shoppingCart == null)
             {
                 //chua co ShoppingCart
+                //create ShoppingCart
                 ShoppingCart newShoppingCart = new ShoppingCart
                 {
                     UserId = userId,
@@ -110,6 +111,7 @@ namespace SkyStoreAPI.Controllers
                     ShoppingCartItems = new List<ShoppingCartItem>()
                 };
                 await _unitOfWork.ShoppingCart.CreateAsync(newShoppingCart);
+                //create ShoppingCartItem
                 ShoppingCartItem item = new ShoppingCartItem
                 {
                     ProductId = productId,
@@ -117,6 +119,7 @@ namespace SkyStoreAPI.Controllers
                     ShoppingCartId = newShoppingCart.Id
                 };
                 await _unitOfWork.ShoppingCartItem.CreateAsync(item);
+
                 newShoppingCart.ShoppingCartItems = await _unitOfWork.ShoppingCartItem.GetAllAsync(u => u.ShoppingCartId == newShoppingCart.Id, includeProperties: "Product");
                 await _unitOfWork.ShoppingCart.UpdateAsync(newShoppingCart);
 
@@ -138,6 +141,7 @@ namespace SkyStoreAPI.Controllers
                         ShoppingCartId = shoppingCart.Id
                     };
                     await _unitOfWork.ShoppingCartItem.CreateAsync(item);
+
                     shoppingCart.ShoppingCartItems = await _unitOfWork.ShoppingCartItem.GetAllAsync(u => u.ShoppingCartId == shoppingCart.Id, includeProperties: "Product");
                     await _unitOfWork.ShoppingCart.UpdateAsync(shoppingCart);
 

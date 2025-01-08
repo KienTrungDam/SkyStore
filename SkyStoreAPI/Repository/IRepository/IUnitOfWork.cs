@@ -8,6 +8,8 @@
         IApplicationUserRepository ApplicationUser { get; }
         IShoppingCartRepository ShoppingCart { get; }
         IShoppingCartItemRepository ShoppingCartItem { get; }
+        IOrderDetailRepository OrderDetail { get; }
+        IOrderHeaderRepository OrderHeader { get; }
         Task SaveAsync();
     }
 }

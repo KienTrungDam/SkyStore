@@ -19,6 +19,8 @@ namespace SkyStoreAPI.Repository
         public IApplicationUserRepository ApplicationUser { get; }
         public IShoppingCartRepository ShoppingCart { get; }
         public IShoppingCartItemRepository ShoppingCartItem { get; }
+        public IOrderHeaderRepository OrderHeader { get; }
+        public IOrderDetailRepository OrderDetail { get; }
         public UnitOfWork(ApplicationDbContext db, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, IConfiguration configuration, IMapper mapper)
         {
             _db = db;
@@ -33,6 +35,8 @@ namespace SkyStoreAPI.Repository
             ApplicationUser = new ApplicationUserRepository(_db);   
             ShoppingCart = new ShoppingCartRepository(_db);
             ShoppingCartItem = new ShoppingCartItemRepository(_db);
+            OrderHeader = new OrderHeaderRepository(_db);
+            OrderDetail = new OrderDetailRepository(_db);
         }
 
         public async Task SaveAsync()
