@@ -144,7 +144,10 @@ namespace SkyStoreAPI.Controllers
                     OrderDetails = new List<OrderDetail>(),
                     ItemsTotal = cart.ItemsTotal,
                     OrderTotal = cart.CartTotal,
-                    OrderStatus = SD.Order_Pending
+                    OrderStatus = SD.Order_Pending,
+                    PaymentStatus = SD.PaymentStatusPending,
+                    StripePaymentIntentId = null
+
                 };
                 await _unitOfWork.OrderHeader.CreateAsync(orderHeader);
                 //create orderdetail
@@ -211,6 +214,7 @@ namespace SkyStoreAPI.Controllers
             {
                 if (_unitOfWork.OrderHeader.IsValidStatusTransition(orderHeader.OrderStatus, status))
                 {
+                    if(status == SD.Order_Processing && orderHeader.PaymentStatus == SD.PaymentStatusApproved) {
                     orderHeader.OrderStatus = status;
                 }
                 else
@@ -229,6 +233,7 @@ namespace SkyStoreAPI.Controllers
                     if(status == SD.Order_Cancelled)
                     {
                         orderHeaderCustomer.OrderStatus = status;
+                        orderHeaderCustomer.PaymentStatus = SD.PaymentStatusRejected;
                         await _unitOfWork.OrderHeader.UpdateAsync(orderHeaderCustomer);
                         _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeaderCustomer);
                         _response.StatusCode = HttpStatusCode.NoContent;
@@ -256,6 +261,29 @@ namespace SkyStoreAPI.Controllers
             _response.StatusCode = HttpStatusCode.NoContent;
             return Ok(_response);
         }
-        
+        [HttpDelete]
+        [Authorize]
+        public async Task<ActionResult<APIResponse>> DeleteOrder(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("User is unauthorized");
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                return Unauthorized(_response);
+            }
+            OrderHeader orderHeader = await _unitOfWork.OrderHeader.GetAsync(u => u.Id == id);
+            if (orderHeader == null)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Id Order is not valid");
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
+            }
+            await _unitOfWork.OrderHeader.RemoveAsync(orderHeader);
+            _response.StatusCode = HttpStatusCode.NoContent;
+            return Ok(_response);
+        }
     }
 }

@@ -18,6 +18,8 @@ namespace SkyStoreAPI.Models
         public int ItemsTotal { get; set; }
         public double OrderTotal { get; set; }
         public string? OrderStatus { get; set; }
+        public string? PaymentStatus { get; set; }
+        public string? StripePaymentIntentId { get; set; }
 
     }
 }

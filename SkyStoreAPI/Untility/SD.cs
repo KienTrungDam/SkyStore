@@ -12,5 +12,9 @@
         public const string Order_Completed = "Completed";
         public const string Order_Cancelled = "Cancelled";
 
+        public const string PaymentStatusPending = "Pending";
+        public const string PaymentStatusApproved = "Approved";
+        public const string PaymentStatusRejected = "Rejected";
+
     }
 }
