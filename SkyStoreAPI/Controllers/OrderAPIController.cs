@@ -179,7 +179,7 @@ namespace SkyStoreAPI.Controllers
                 return BadRequest(_response);
             }
 
-            
+
 
         }
         [HttpPut]
@@ -194,7 +194,7 @@ namespace SkyStoreAPI.Controllers
                 _response.StatusCode = HttpStatusCode.Unauthorized;
                 return BadRequest(_response);
             }
-            if(_unitOfWork.OrderHeader.IsValidStatus(status) == false)
+            if (_unitOfWork.OrderHeader.IsValidStatus(status) == false)
             {
                 _response.IsSuccess = false;
                 _response.ErrorMessages.Add("Status for update is not valid");
@@ -210,12 +210,20 @@ namespace SkyStoreAPI.Controllers
                 return Unauthorized(_response);
             }
             var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
-            if(role == SD.Role_Employee || role == SD.Role_Admin)
+            if (role == SD.Role_Employee || role == SD.Role_Admin)
             {
                 if (_unitOfWork.OrderHeader.IsValidStatusTransition(orderHeader.OrderStatus, status))
                 {
-                    if(status == SD.Order_Processing && orderHeader.PaymentStatus == SD.PaymentStatusApproved) {
-                    orderHeader.OrderStatus = status;
+                    if (status == SD.Order_Processing && orderHeader.PaymentStatus == SD.PaymentStatusPending) {
+                        _response.IsSuccess = false;
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.ErrorMessages.Add("Some thing went wrong");
+                        return BadRequest(_response);
+                    }
+                    else
+                    {
+                        orderHeader.OrderStatus = status;
+                    }
                 }
                 else
                 {
@@ -224,13 +232,14 @@ namespace SkyStoreAPI.Controllers
                     _response.ErrorMessages.Add("Some thing went wrong");
                     return BadRequest(_response);
                 }
+                
             }
             else
             {
                 OrderHeader orderHeaderCustomer = await _unitOfWork.OrderHeader.GetAsync(u => u.ApplicationUserId == user.Id && u.Id == id);
                 if (orderHeaderCustomer.OrderStatus != SD.Order_Cancelled || orderHeaderCustomer.OrderStatus != SD.Order_Completed)
                 {
-                    if(status == SD.Order_Cancelled)
+                    if (status == SD.Order_Cancelled)
                     {
                         orderHeaderCustomer.OrderStatus = status;
                         orderHeaderCustomer.PaymentStatus = SD.PaymentStatusRejected;
@@ -246,9 +255,9 @@ namespace SkyStoreAPI.Controllers
                         _response.ErrorMessages.Add("You cannot update status");
                         return BadRequest(_response);
                     }
-                    
+
                 }
-                else if(orderHeaderCustomer.OrderStatus == SD.Order_Cancelled || orderHeaderCustomer.OrderStatus == SD.Order_Completed)
+                else if (orderHeaderCustomer.OrderStatus == SD.Order_Cancelled || orderHeaderCustomer.OrderStatus == SD.Order_Completed)
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
@@ -257,9 +266,10 @@ namespace SkyStoreAPI.Controllers
                 }
             }
             await _unitOfWork.OrderHeader.UpdateAsync(orderHeader);
-            _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeader);   
+            _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeader);
             _response.StatusCode = HttpStatusCode.NoContent;
             return Ok(_response);
+
         }
         [HttpDelete]
         [Authorize]
