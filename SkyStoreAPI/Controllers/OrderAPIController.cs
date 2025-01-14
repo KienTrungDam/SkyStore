@@ -12,6 +12,7 @@ namespace SkyStoreAPI.Controllers
 {
     [Route("api/OrderAPI")]
     [ApiController]
+    [Authorize]
     public class OrderAPIController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -28,7 +29,6 @@ namespace SkyStoreAPI.Controllers
             _response = new APIResponse();
         }
         [HttpGet]
-        [Authorize]
         public async Task<ActionResult<APIResponse>> GetAllOrder()
         {
             var user = await _userManager.GetUserAsync(User);

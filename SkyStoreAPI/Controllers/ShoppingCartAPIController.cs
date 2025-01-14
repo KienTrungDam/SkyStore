@@ -29,6 +29,7 @@ namespace SkyStoreAPI.Controllers
             _response = new APIResponse();
         }
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetAllShoppingCart()
         {
             /*var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -39,6 +40,9 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);
         }
         [HttpGet("{Userid}", Name = "GetShoppingCart")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> GetShoppingCart(string Userid)
         {
             var user = await _userManager.FindByIdAsync(Userid);
@@ -81,6 +85,9 @@ namespace SkyStoreAPI.Controllers
 
         }
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         //[Authorize(Roles = SD.Role_Admin)]
         public async Task<ActionResult<APIResponse>> CreateShoppingCart(int productId, int quantity)
         {
@@ -168,6 +175,9 @@ namespace SkyStoreAPI.Controllers
         }
         [HttpPut]
         //[Authorize(Roles = SD.Role_Admin)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> UpdateShoppingCart(string userId, int productId, int quantity)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -248,6 +258,9 @@ namespace SkyStoreAPI.Controllers
             }
         }
         [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> DeleteShoppingCartItem(string userId, int shoppingCartItemId)
         {
             var user = await _userManager.FindByIdAsync(userId);

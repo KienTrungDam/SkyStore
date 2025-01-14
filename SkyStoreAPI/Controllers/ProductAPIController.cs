@@ -27,6 +27,7 @@ namespace SkyStoreAPI.Controllers
         }
         [HttpGet]
         //[Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetProducts()
         {
             IEnumerable<Product> products = await _unitOfWork.Product.GetAllAsync(includeProperties: "Category");
@@ -35,6 +36,9 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);
         }
         [HttpGet("{id:int}", Name = "GetProduct")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         //[Authorize(Roles = SD.Role_Customer)]
         public async Task<ActionResult<APIResponse>> GetProduct(int id)
         {
@@ -58,7 +62,9 @@ namespace SkyStoreAPI.Controllers
             return Ok(_response);
         }
         [HttpPost]
-        //[Authorize(Roles = SD.Role_Admin)]
+        [Authorize(Roles = SD.Role_Admin)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> CreateProduct([FromForm] ProductCreateDTO productCreateDTO)
         {
             try
@@ -123,7 +129,10 @@ namespace SkyStoreAPI.Controllers
             return BadRequest(_response);
         }
         [HttpPut("{id:int}", Name = "UpdateProduct")]
-        //[Authorize(Roles = SD.Role_Admin)]
+        [Authorize(Roles = SD.Role_Admin)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> UpdateProduct(int id, [FromForm] ProductUpdateDTO productUpdateDTO)
         {
             try
@@ -174,7 +183,10 @@ namespace SkyStoreAPI.Controllers
             return BadRequest(_response);
         }
         [HttpDelete("{id:int}", Name = "DeleteProduct")]
-        //[Authorize(Roles = SD.Role_Admin)]
+        [Authorize(Roles = SD.Role_Admin)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APIResponse>> DeleteProduct(int id)
         {
             if (id == 0)

@@ -29,6 +29,7 @@ namespace SkyStoreAPI.Controllers
             _roleManager = roleManager;
         }
         [HttpGet]
+        [Authorize(Roles = SD.Role_Admin)]
         //[ResponseCache(Duration = 30)]//khi thuc hien get villas giong nhau trong 30s cac hanh dong tiep theo se lay du lieu tu lan 1 vaf ko can goi api 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -111,6 +112,7 @@ namespace SkyStoreAPI.Controllers
             return _response;
         }
         [HttpDelete("{id}", Name = "DeleteUser")]
+        [Authorize(Roles = SD.Role_Admin)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -144,6 +146,7 @@ namespace SkyStoreAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = SD.Role_Admin)]
         public async Task<ActionResult<APIResponse>> CreateUser([FromForm] RegisterRequestDTO requestDTO)
         {
             try
@@ -174,6 +177,7 @@ namespace SkyStoreAPI.Controllers
             }
         }
         [HttpPut("Role/{id}", Name = "UpdateRoleToUser")]
+        [Authorize(Roles = SD.Role_Admin)]
         public async Task<ActionResult<APIResponse>> UpdateRoleToUser(string id, string role)
         {
             try
@@ -212,6 +216,7 @@ namespace SkyStoreAPI.Controllers
             }
         }
         [HttpPost("LockUnlock")]
+        [Authorize(Roles = SD.Role_Admin)]
         public async Task<ActionResult<APIResponse>> LockUnlock(string id)
         {
 
